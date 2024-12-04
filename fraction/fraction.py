@@ -12,11 +12,20 @@ class Fraction:
     This class allows fraction manipulations through several operations.
     """
 
-    def __init__(self,num=0, den=1):
+    def __init__(self,num: int=0, den: int=1):
         """This builds a fraction based on some numerator and denominator.
 
-        PRE : den est un entier différent de zéro.
-        POST : une instance de Fraction est créée
+        PRE :
+        - `num` est un entier.
+        - `den` est un entier différent de 0.
+
+        POST :
+            - Une instance de Fraction est créée.
+            - La fraction est automatiquement simplifiée.
+            - Le dénominateur est toujours positif.
+
+        Raises:
+            ZeroDivisionError: Si `den` est nul.
         """
         if den == 0:
             raise ZeroDivisionError("Le dénominateur ne peut pas être zéro.")
@@ -24,17 +33,23 @@ class Fraction:
         self._den= den
 
 
+        pgcd = gcd(num, den)
+        self._numerator = num // pgcd * (-1 if den < 0 else 1)
+        self._den = abs(den) // pgcd
+
+
+
     @property
-    def numerator(self):
+    def numerator(self) -> int:
         return self._numerator
 
     @property
-    def denominator(self):
+    def denominator(self) -> int:
         return self._den
 
     # ------------------ Textual representations ------------------
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Return a textual representation of the reduced form of the fraction
 
         PRE : -
@@ -42,7 +57,7 @@ class Fraction:
         """
         return f"{self.numerator}/{self._den}" #if self._den!=1 else f"{self.numerator}"
 
-    def as_mixed_number(self):
+    def as_mixed_number(self) -> str:
         """Return a textual representation of the reduced form of the fraction as a mixed number
 
         A mixed number is the sum of an integer and a proper fraction
@@ -50,79 +65,85 @@ class Fraction:
         PRE : -
         POST : return une chaine de caractère :
                 - si numerator > den : retourne "entier + (numerator%den)/den"
-                - sinon : retourn la fraction réduite.
+                - sinon : return la fraction simplifiée.
         """
-        if abs(self.numerator) > abs(self.denominator) and self.numerator%self.denominator !=0 :
-            return f"{self.numerator//self.denominator} + {abs((self.numerator%self.denominator))}/{self.denominator}"#à voir
+        reste = self.numerator%self.denominator
+        integer = self.numerator // self.denominator
 
-        elif self.numerator%self.denominator ==0 :
-            return f"{self._numerator//self._den}"
+        if reste == 0:
+            return str(integer)
 
-        else :
-            return f"{self.numerator}/{self.denominator}"
+        if abs(self.numerator) > abs(self.denominator)  :
+            return f"{integer} + {abs(reste)}/{abs(self.denominator)}"
+
+
+
+
+        return f"{self.numerator}/{self.denominator}"
 
     # ------------------ Operators overloading ------------------
 
-    def __add__(self, other):
+    def __add__(self, other: 'Fraction') -> 'Fraction':
         """Overloading of the + operator for fractions
 
-        PRE : other est une instance de la classe Fraction .
-        POST : retourne une nouvelles forme simplifiéé de la somme de ces deux franctions.
+        PRE : -.
+        POST : retourne une fraction représentant la somme des deux fractions sous forme simplifiée.
+        Raises:
+            TypeError: Si other n'est pas une instance de Fraction.
          """
         if not isinstance(other, Fraction):
             raise TypeError("Valeur invalide")
         num = (self.numerator* other.denominator) + (other.numerator*self.denominator)
         den= (self.denominator*other.denominator)
-        pgcd=gcd(num,den)
-        num //=pgcd
-        den //=pgcd
+
 
         return Fraction(num,den) # if den=1 else num
 
 
 
-    def __sub__(self, other):
+    def __sub__(self, other: 'Fraction') -> 'Fraction':
         """Overloading of the - operator for fractions
 
-        PRE : other est une instance de la classe Fraction .
-        POST : retourne une nouvelles fraction simplifiée, résultat de la soustraction de ces deux fractions(self et other).
+        PRE : -
+        POST : retourne une fraction représentant la différence des deux fractions sous forme simplifiée.
+        Raises:
+            TypeError: Si other n'est pas une instance de Fraction.
         """
         if not isinstance(other, Fraction):
             raise TypeError("Valeur invalide")
         num = (self.numerator * other.denominator) - (other.numerator * self.denominator)
         den = (self.denominator * other.denominator)
-        pgcd = gcd(num, den)
-        num //= pgcd
-        den //= pgcd
-        
 
         return Fraction(num,den)
 
 
-    def __mul__(self, other):
+
+    def __mul__(self, other: 'Fraction') -> 'Fraction':
         """Overloading of the * operator for fractions
 
-        PRE : other est une instance de la classe Franction .
+        PRE : -
         POST : retourne une nouvelles frction  simplifiée , résultat de la multiplication de ces deux fractions( self et other)
+        Raises:
+            TypeError: other n'est pas une instance de Fraction.
         """
         if not isinstance(other, Fraction):
             raise TypeError("Valeur invalide")
         num = self.numerator *other.numerator
         den = self.denominator * other.denominator
-        pgcd = gcd(num, den)
-        num //= pgcd
-        den //= pgcd
-        if den==num:
-            return f"{1}"
+
+
 
         return Fraction(num,den)
 
 
-    def __truediv__(self, other):
+    def __truediv__(self, other: 'Fraction') -> 'Fraction':
         """Overloading of the / operator for fractions
 
-        PRE : other est une instance de la classe Franction .
+        PRE : -
         POST : retourne une forme simplifiée de la division de ces deux fractions( self et other)
+        Raises:
+            TypeError: Si other n'est pas une instance de Fraction.
+            ZeroDivisionError: le numérateur de la fraction divisante est nulle.
         """
         if  not isinstance(other,Fraction):
             raise TypeError("Valeur invalide")
@@ -132,18 +153,20 @@ class Fraction:
 
         num=self.numerator*other.denominator
         den= self.denominator*other.numerator
-        pgcd = gcd(num,den)
-        num //=pgcd
-        den //=pgcd
 
-        return Fraction(num,den)# if den !=1 else num
+        return Fraction(num,den)
 
     def __pow__(self, other):
         """Overloading of the ** operator for fractions
 
-        PRE : other est une instance de la classe Franction , son dénominateur est différent de zéro.
+        PRE : -
         POST : retourne une forme simplifiée de self élevé à la puissance 'other'
+        Raises:
+            TypeError: Si other n'est pas une instance de Fraction.
         """
+        if  not isinstance(other,Fraction):
+            raise TypeError("Valeur invalide")
+
         if not isinstance(other, Fraction):
             raise TypeError("Valeur invalide")
         if other.numerator == 0:
@@ -166,12 +189,15 @@ class Fraction:
     def __eq__(self, other):
         """Overloading of the == operator for fractions
 
-        PRE : other est une instance de la classe Franction .
+        PRE : -
         POST : retourne True si self et other son équivalentes , False sinon
 
+        Raises:
+            TypeError: Si other n'est pas une instance de Fraction.
         """
-        if not isinstance(other,Fraction):
+        if  not isinstance(other,Fraction):
             raise TypeError("Valeur invalide")
+
 
         return  self.numerator*other.denominator == other.numerator*self.denominator
 
@@ -181,15 +207,25 @@ class Fraction:
         """Returns the decimal value of the fraction
 
         PRE : -
-        POST : retourne un float qui représente la fraction
+        POST : - Retourne un nombre flottant correspondant au résultat de la division du numérateur
+          par le dénominateur (`self._numerator / self._den`).
+
+        Raises:
+
+            ZeroDivisionError: Si `den` est nul.
         """
+
+
+        if self._den == 0:
+            raise ZeroDivisionError("Le dénominateur ne peut pas être zéro.")
+
         return self.numerator / self.denominator
 
     # TODO : [BONUS] You can overload other operators if you wish (ex : <, >, ...)
 
     # ------------------ Properties checking  ------------------
 
-    def is_zero(self):
+    def is_zero(self) -> bool:
         """Check if a fraction's value is 0
 
         PRE : -
@@ -198,7 +234,7 @@ class Fraction:
         """
         return self.numerator == 0
 
-    def is_integer(self):
+    def is_integer(self) -> bool:
         """Check if a fraction is integer (ex : 8/4, 3, 2/2, ...)
 
         PRE : -
@@ -206,26 +242,23 @@ class Fraction:
         """
 
 
-        return self.numerator% self.denominator == 0
+        return self.numerator % self.denominator == 0
 
-    def is_proper(self):
+    def is_proper(self) -> bool:
         """Check if the absolute value of the fraction is < 1
-        PRE : le dénominateur est différent de zéro # le numérateur est plus petit  au dénominateur
+        PRE : -
         POST : return True si le résultat de cette fraction est un nombre propre , False sinon
         """
         return abs(self.numerator) < abs(self.denominator)
 
 
-    def is_unit(self):
+    def is_unit(self) -> bool:
         """
         Check if a fraction's numerator is 1 in its reduced form
 
         PRE : -
         POST : return True si le résultat de cette fraction est égale à 1 , False sinon
         """
-        #pgcd=gcd(self.numerator,self.denominator)
-        #num =self.numeratorpgcd
-        #self.denominator //= pgcd
 
         return self.numerator == self.denominator
 
@@ -234,15 +267,17 @@ class Fraction:
 
         Two fractions are adjacents if the absolute value of the difference them is a unit fraction
 
-        PRE : other est une instance de la classe Fraction.
+        PRE : -
         POST : retourne True si les fractions sont adjacentes, False sinon.
+        Raises:
+            TypeError: Si other n'est pas une instance de Fraction.
         """
         if not isinstance(other, Fraction):
             raise TypeError("L'opérande doit être une instance de Fraction.")
 
         fraction = self - other
 
-        return fraction.numerator == 1
+        return abs(fraction.numerator) == 1
 
 
 
